@@ -1,0 +1,18 @@
+{
+  "thresholds": {
+    "BP50": { "min": 500, "max": 600 },
+    "CN": { "min": 40, "max": 70 },
+    "D4052": { "min": 0.78, "max": 0.88 },
+    "FLASH": { "min": 40, "max": 100 },
+    "FREEZE": { "min": -60, "max": 5 },
+    "TOTAL": { "min": 10, "max": 50 },
+    "VISC": { "min": 1.0, "max": 5.0 }
+  },
+
+  "quality_limits": {
+    "snrMin": 5.0,
+    "baselineMax": 10.0,
+    "integrityMin": 0.95,
+    "anomalyLimit": 100
+  }
+}
