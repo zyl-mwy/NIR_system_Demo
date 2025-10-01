@@ -2,15 +2,18 @@
 
 这是一个基于C++、Qt5和LibTorch的智能光谱预测系统，包含下位机（TCP服务器）和上位机（TCP客户端），支持实时光谱数据采集、处理和属性预测。
 
+> **注意**：下位机为模拟近红外光谱检测系统下位机，用于上位机开发测试。实际部署时需要替换为真实的近红外光谱仪硬件。
+
 ## 项目结构
 
 ```
-c_system/
+c_system1/
 ├── lower_computer/          # 下位机（TCP服务器）
 │   ├── main.cpp            # 下位机主程序
 │   ├── Server.cpp          # TCP服务器实现
 │   ├── Server.h            # 服务器头文件
-│   └── CMakeLists.txt      # 下位机构建配置
+│   ├── CryptoUtils.cpp     # 加密工具实现
+│   └── CryptoUtils.h       # 加密工具头文件
 ├── upper_computer/         # 上位机（TCP客户端）
 │   ├── main.cpp            # 上位机主程序
 │   ├── Client.cpp          # TCP客户端实现
@@ -21,22 +24,25 @@ c_system/
 │   ├── LibTorchPredictor.h   # LibTorch预测器头文件
 │   ├── PredictionWorker.cpp  # 预测工作线程实现
 │   ├── PredictionWorker.h    # 预测工作线程头文件
-│   └── CMakeLists.txt      # 上位机构建配置
-├── model/                  # 模型文件目录
+│   ├── Database.cpp         # 数据库管理实现
+│   ├── Database.h           # 数据库管理头文件
+│   ├── CryptoUtils.cpp      # 加密工具实现
+│   ├── CryptoUtils.h        # 加密工具头文件
+│   └── ZoomableChartView.h  # 可缩放图表视图头文件
+├── model/                  # 模型文件目录（需要训练生成）
 │   ├── spectrum_model.jit  # TorchScript模型文件
 │   ├── spectrum_model.pth  # PyTorch模型权重
 │   ├── spectrum_best.pth   # 最佳模型权重
-│   ├── model_info.json     # 模型信息文件
-│   ├── property_scaler.pkl # 属性标准化器
-│   └── spectrum_scaler.pkl # 光谱标准化器
+│   └── model_info.json     # 模型信息文件
 ├── data/                   # 数据文件目录
-│   ├── spectrum/           # 光谱数据文件
-│   ├── calibration/        # 校准数据文件
 │   ├── diesel_prop.csv     # 柴油属性数据
 │   └── diesel_spec.csv     # 柴油光谱数据
-├── bin/                    # 可执行文件目录
+├── config/                 # 配置文件目录
+│   └── thresholds.json     # 阈值配置文件
+├── bin/                    # 可执行文件目录（构建后生成）
 │   ├── lower_computer      # 下位机可执行文件
 │   └── upper_computer      # 上位机可执行文件
+├── build/                  # 构建目录（构建后生成）
 ├── spectrum_model.py       # Python模型训练脚本
 ├── CMakeLists.txt          # 主构建配置
 └── README.md              # 说明文档
@@ -56,7 +62,7 @@ c_system/
   传感器/CSV → 流式光谱/状态 → 网络 → 解析 → 预处理 → 图表/预测 → 历史/告警/存储
 ```
 
-- **下位机（lower_computer）**：提供 TCP 服务，按指令发送设备状态与光谱数据，支持整帧与流式。
+- **下位机（lower_computer）**：模拟近红外光谱检测系统，提供 TCP 服务，按指令发送设备状态与光谱数据，支持整帧与流式。用于上位机开发测试。
 - **上位机（upper_computer）**：Qt GUI，负责接收解析、图表展示、实时预测（LibTorch）、质量监控、历史、阈值告警等。
 - **模型（model/）**：部署用 TorchScript 模型与信息文件。
 
@@ -143,9 +149,9 @@ cmake --build build -j
 ## 配置与路径
 
 - 模型：`model/` 目录，使用 `model_info.json` 与 `spectrum_model.jit`。
-- 数据：`data/` 目录（`spectrum/` 光谱、`calibration/` 校准、`diesel_spec.csv` 等）。
+- 数据：`data/` 目录（`diesel_spec.csv`、`diesel_prop.csv` 等）。
 - 阈值配置：`config/thresholds.json`（属性上下限与告警阈值）。
-- 日志输出：`bin/logs/` 与项目根 `logs/`。
+- 日志输出：程序运行时自动创建日志文件。
 
 ### 阈值配置（thresholds.json）
 
@@ -212,20 +218,22 @@ cmake --build build -j
 
 ## 功能特性
 
-### 下位机（TCP服务器）
+### 下位机（TCP服务器）- 模拟近红外光谱检测系统
 - **图形界面**: 基于Qt5的现代化GUI界面
 - **端口监听**: 可配置端口，支持多客户端连接
-- **传感器数据模拟**: 可配置间隔的自动数据发送
-- **光谱文件读取**: 自动读取data文件夹中的光谱文件
+- **传感器数据模拟**: 可配置间隔的自动数据发送（模拟真实传感器）
+- **光谱文件读取**: 自动读取data文件夹中的光谱文件（模拟光谱仪数据）
 - **自动加载**: 启动时自动加载diesel_spec.csv文件
 - **指令驱动**: 默认不自动发送数据，等待上位机指令
 - **光谱数据解析**: 支持CSV和TXT格式，按指定格式解析光谱数据
-- **流式发送**: 支持逐行发送光谱数据，每50ms发送一行
+- **流式发送**: 支持逐行发送光谱数据，每50ms发送一行（模拟实时采集）
 - **命令处理**: 支持多种客户端命令
 - **JSON数据格式**: 使用JSON格式传输结构化数据
 - **连接管理**: 实时显示客户端列表和连接状态
 - **数据监控**: 实时显示传感器数据和通信日志
 - **服务器控制**: 图形化启动/停止服务器
+
+> **说明**：此为模拟系统，用于上位机开发测试。实际部署时需替换为真实的近红外光谱仪硬件。
 
 ### 上位机（TCP客户端）
 - **图形界面**: 基于Qt5的现代化GUI界面
@@ -317,10 +325,8 @@ python3 spectrum_model.py
 - `model/spectrum_model.pth` - PyTorch模型权重
 - `model/spectrum_best.pth` - 最佳模型权重
 - `model/model_info.json` - 模型信息文件
-- `model/property_scaler.pkl` - 属性标准化器
-- `model/spectrum_scaler.pkl` - 光谱标准化器
 
-**注意**: 确保 `data/` 目录下有训练数据文件：
+**注意**: 确保 `data/` 目录下有训练数据文件（已包含在项目中）：
 - `diesel_prop.csv` - 柴油属性数据
 - `diesel_spec.csv` - 柴油光谱数据
 
@@ -351,10 +357,7 @@ class SpectrumPredictor(nn.Module):
 
 ### 1. 构建项目
 ```bash
-# 使用构建脚本（推荐）
-./build.sh
-
-# 或手动构建
+# 手动构建
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j$(nproc)
@@ -364,27 +367,21 @@ make -j$(nproc)
 
 **步骤1: 启动下位机**
 ```bash
-# 推荐使用启动脚本（自动解决库版本冲突）
-./run_lower.sh
-
-# 或直接运行（可能需要设置库路径）
+# 直接运行
 ./bin/lower_computer
 ```
 下位机将启动TCP服务器，监听8888端口。
 
 **步骤2: 启动上位机**
 ```bash
-# 推荐使用启动脚本（自动解决库版本冲突）
-./run_upper.sh
-
-# 或直接运行（可能需要设置库路径）
+# 直接运行
 ./bin/upper_computer
 ```
 上位机将显示图形界面，点击"连接"按钮连接到下位机。
 
 ## 使用说明
 
-### 下位机功能
+### 下位机功能（模拟近红外光谱检测系统）
 - **服务器控制**: 图形化启动/停止TCP服务器
 - **端口配置**: 可自定义监听端口
 - **自动数据发送**: 可配置发送间隔（1-60秒）
@@ -392,6 +389,7 @@ make -j$(nproc)
 - **数据监控**: 实时显示传感器数据表格
 - **通信日志**: 显示所有通信记录
 - **命令处理**: 处理客户端命令并响应
+- **光谱数据模拟**: 从CSV文件读取并发送光谱数据，模拟真实光谱仪
 
 ### 上位机功能
 - **连接设置**: 配置服务器地址和端口
@@ -541,14 +539,7 @@ make -j$(nproc)
 
 **问题描述**: 运行程序时出现 `GLIBCXX_3.4.32 not found` 错误，这通常是由于 Anaconda 环境中的 libstdc++ 版本较旧导致的。
 
-**解决方案1: 使用启动脚本（推荐）**
-```bash
-# 使用提供的启动脚本
-./run_lower.sh    # 启动下位机
-./run_upper.sh    # 启动上位机
-```
-
-**解决方案2: 手动指定库路径**
+**解决方案1: 手动指定库路径**
 ```bash
 # 下位机
 LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu ./bin/lower_computer
@@ -557,13 +548,15 @@ LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu ./bin/lower_computer
 LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu ./bin/upper_computer
 ```
 
-**解决方案3: 重新编译（已自动配置）**
+**解决方案2: 重新编译（已自动配置）**
 项目已配置为静态链接 libstdc++，重新编译后应该可以避免版本冲突：
 ```bash
-./build.sh
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j$(nproc)
 ```
 
-**解决方案4: 环境变量设置**
+**解决方案3: 环境变量设置**
 ```bash
 # 临时设置
 export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
@@ -577,34 +570,19 @@ source ~/.bashrc
 ```bash
 # 启用调试输出
 export QT_LOGGING_RULES="*=true"
-./build/bin/lower_computer
-./build/bin/upper_computer
+./bin/lower_computer
+./bin/upper_computer
 ```
 
-## 测试脚本
+## 测试方法
 
-项目包含多个测试脚本，用于验证不同功能：
+项目可以通过以下方式测试功能：
 
-- `test_connection.sh` - 基本连接测试
-- `test_gui.sh` - GUI功能测试
-- `test_system.sh` - 系统综合测试
-- `test_spectrum.sh` - 光谱数据传输测试
-- `test_diesel_auto.sh` - 自动加载diesel_spec.csv测试
-- `test_command_driven.sh` - 指令驱动模式测试
-- `test_spectrum_display.sh` - 光谱数据实时显示测试
-- `test_spectrum_stream.sh` - 光谱数据逐行发送测试
-
-### 使用方法
-```bash
-# 运行特定测试
-./test_spectrum_display.sh
-
-# 运行所有测试
-for script in test_*.sh; do
-    echo "运行 $script"
-    ./$script
-done
-```
+### 基本功能测试
+1. **连接测试**: 启动下位机后，启动上位机并点击"连接"按钮
+2. **数据接收测试**: 连接成功后，点击"开始流"按钮测试光谱数据接收
+3. **预测功能测试**: 确保模型文件存在后，观察预测结果表格更新
+4. **图表显示测试**: 检查光谱曲线图和预测历史图表是否正常显示
 
 ## 扩展功能
 
