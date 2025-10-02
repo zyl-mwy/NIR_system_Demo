@@ -56,12 +56,12 @@ def load_data(spectrum_file: str, property_file: str) -> Tuple[np.ndarray, np.nd
     # 加载光谱数据
     spec_df = pd.read_csv(spectrum_file, header=None)
     spec_data = spec_df.iloc[9:].values
-    
+    # print(spec_data)
     # 提取波长标签（第10行）
     wavelength_labels = spec_df.iloc[9, 2:].dropna().astype(str).tolist()
     
-    # 提取光谱数据（从第11行开始，跳过前3列，移除最后一列NaN）
-    spectra = spec_data[1:, 3:].astype(float)
+    # 提取光谱数据（从第11行开始，跳过前2列，移除最后一列NaN）
+    spectra = spec_data[1:, 2:].astype(float)
     spectra = spectra[:, ~np.isnan(spectra).any(axis=0)]  # 移除包含NaN的列
     
     # 加载属性数据
@@ -234,7 +234,8 @@ def evaluate_model(model: nn.Module, val_loader: Data.DataLoader, property_label
     # 合并所有预测结果
     predictions = np.vstack(all_predictions)
     targets = np.vstack(all_targets)
-    
+    print('------------', predictions)
+    print('------------', targets)
     # 计算评估指标
     print("\n模型性能评估:")
     for i, label in enumerate(property_labels):

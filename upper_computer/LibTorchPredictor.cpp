@@ -101,16 +101,14 @@ public:
             logMessage("🔧 开始LibTorch预测处理...");
             logMessage("  - 输入光谱数据点数: " + std::to_string(spectrum.size()));
             
-            // 应用SNV标准化
-            logMessage("  - 应用SNV标准化...");
-            std::vector<float> normalized_spectrum = applySNV(spectrum);
-            logMessage("  - SNV标准化完成");
+            // 直接使用原始光谱数据（移除SNV标准化）
+            logMessage("  - 跳过SNV标准化，直接使用原始光谱数据");
 
             // 转换为torch::Tensor
             logMessage("  - 转换为torch::Tensor...");
             torch::Tensor input_tensor = torch::from_blob(
-                normalized_spectrum.data(), 
-                {1, static_cast<long>(normalized_spectrum.size())}, 
+                const_cast<float*>(spectrum.data()),
+                {1, static_cast<long>(spectrum.size())},
                 torch::kFloat
             ).clone().to(torch_device_);
             logMessage("  - Tensor形状: [" + std::to_string(input_tensor.size(0)) + ", " + std::to_string(input_tensor.size(1)) + "]");

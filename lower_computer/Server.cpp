@@ -691,9 +691,9 @@ bool LowerComputerServer::loadSpectrumData(const QString &fileName)
         }
         for (int i = 10; i < lines.size(); ++i) {
             QStringList dataLine = lines[i].split(',');
-            if (dataLine.size() >= 2) {
+            if (dataLine.size() >= 3) { // 第1列样本ID，第2列可能是其他信息，从第3列开始为光谱
                 QJsonArray rowArray;
-                for (int j = 1; j < dataLine.size() && j - 1 < wavelengthData.size(); ++j) {
+                for (int j = 2; j < dataLine.size() && j - 2 < wavelengthData.size(); ++j) {
                     bool ok;
                     double spectrumValue = dataLine[j].toDouble(&ok);
                     if (ok) {
