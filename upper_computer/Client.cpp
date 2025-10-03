@@ -2809,10 +2809,11 @@ void UpperComputerClient::initSpectrumPredictor()
         QString appDir = QCoreApplication::applicationDirPath();
         QString modelPath = QDir(appDir).filePath("../model/spectrum_model.jit");
         QString modelInfoPath = QDir(appDir).filePath("../model/model_info.json");
+        QString preprocessingParamsPath = QDir(appDir).filePath("../model/preprocessing_params.json");
         
         // 检查模型文件是否存在
-        if (!QFile::exists(modelPath) || !QFile::exists(modelInfoPath)) {
-            writeToLog("模型文件不存在，请先运行Python训练脚本");
+        if (!QFile::exists(modelPath) || !QFile::exists(modelInfoPath) || !QFile::exists(preprocessingParamsPath)) {
+            writeToLog("模型文件或预处理参数文件不存在，请先运行Python训练脚本");
             return;
         }
         
@@ -2820,6 +2821,7 @@ void UpperComputerClient::initSpectrumPredictor()
         spectrumPredictor = new SpectrumPredictor(
             modelPath.toStdString(),
             modelInfoPath.toStdString(),
+            preprocessingParamsPath.toStdString(),
             "cpu"  // 使用CPU进行推理
         );
         

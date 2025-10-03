@@ -30,10 +30,12 @@ public:
      * @brief 构造函数
      * @param model_path 模型文件路径
      * @param model_info_path 模型信息文件路径
+     * @param preprocessing_params_path 预处理参数文件路径
      * @param device 计算设备 ("cpu" 或 "cuda")
      */
     SpectrumPredictor(const std::string& model_path, 
-                     const std::string& model_info_path, 
+                     const std::string& model_info_path,
+                     const std::string& preprocessing_params_path,
                      const std::string& device = "cpu");
     
     /**
@@ -96,10 +98,28 @@ private:
     std::vector<float> applySNV(const std::vector<float>& spectrum);
     
     /**
+     * @brief 反标准化属性数据
+     * @param scaled_properties 标准化后的属性数据
+     * @return 原始尺度的属性数据
+     */
+    std::vector<float> inverseScaleProperties(const std::vector<float>& scaled_properties);
+    
+    /**
      * @brief 加载模型信息
      * @param model_info_path 模型信息文件路径
      */
     void loadModelInfo(const std::string& model_info_path);
+    
+    /**
+     * @brief 根据selected_feature_indices_对光谱进行特征筛选
+     */
+    std::vector<float> applyFeatureSelection(const std::vector<float>& spectrum) const;
+    
+    /**
+     * @brief 加载预处理参数
+     * @param preprocessing_params_path 预处理参数文件路径
+     */
+    void loadPreprocessingParams(const std::string& preprocessing_params_path);
     
     // LibTorch预测器
     std::unique_ptr<LibTorchPredictor> libtorch_predictor_;
@@ -111,5 +131,15 @@ private:
     int output_size_;                            // 输出属性数量
     std::vector<std::string> property_labels_;   // 属性标签
     std::vector<std::string> wavelength_labels_; // 波长标签
+    std::vector<int> selected_feature_indices_;  // VIP选择的特征索引（用于特征子集）
+    // PCA 参数（在VIP后）
+    bool pca_loaded_ = false;
+    std::vector<float> pca_mean_;
+    std::vector<std::vector<float>> pca_components_; // n_components x n_features
     std::function<void(const std::string&)> log_callback_;  // 日志回调函数
+    
+    // 预处理参数
+    std::vector<float> property_scaler_mean_;    // 属性标准化均值
+    std::vector<float> property_scaler_scale_;   // 属性标准化缩放因子
+    bool preprocessing_loaded_;                  // 预处理参数是否已加载
 };
