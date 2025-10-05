@@ -87,6 +87,15 @@ add_executable(upper_computer
     ${UPPER_COMP_SOURCES}
 )
 
+# 为上位机目标添加包含目录，适配新的目录结构
+target_include_directories(upper_computer PRIVATE
+    ${CMAKE_SOURCE_DIR}/upper_computer
+    ${CMAKE_SOURCE_DIR}/upper_computer/basic
+    ${CMAKE_SOURCE_DIR}/upper_computer/predictor/final_predictor/example
+    ${CMAKE_SOURCE_DIR}/upper_computer/predictor/final_predictor/svr
+    ${CMAKE_SOURCE_DIR}/upper_computer/predictor/basic
+)
+
 # 上位机链接库 (包含所有功能)
 target_link_libraries(upper_computer
     Qt5::Core        # Qt核心功能

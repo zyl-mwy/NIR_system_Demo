@@ -546,7 +546,10 @@ void LowerComputerServer::processClientCommand(QTcpSocket *client, const QString
                 sendDeviceStatusTo(client);
                 return;
             } else if (type == "START_DEVICE_STATUS_STREAM") {
-                deviceStatusActive[client] = true; if (!deviceStatusTimer->isActive()) deviceStatusTimer->start();
+                deviceStatusActive[client] = true; 
+                if (!deviceStatusTimer->isActive()) {
+                    deviceStatusTimer->start();
+                }
                 client->write("已开始设备状态流\n");
                 return;
             } else if (type == "STOP_DEVICE_STATUS_STREAM") {
